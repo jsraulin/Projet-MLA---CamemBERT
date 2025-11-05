@@ -1,2 +1,2 @@
-# Projet-MLA---CamenBERT
-Projet Machine Learning Avancé Groupe 5 - CamenBERT
+# Projet-MLA---CamemBERT
+Projet Machine Learning Avancé Groupe 5 - CamemBERT
