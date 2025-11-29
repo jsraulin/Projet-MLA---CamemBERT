@@ -3,6 +3,8 @@ import torch
 import torch.nn
 from transformers import CamembertConfig
 
+from cmbrtEmbeddings import CmbrtEmbeddings
+
 cfg = CamembertConfig.from_pretrained("camembert-base") #
 
 gelu = torch.nn.GELU()
@@ -19,7 +21,7 @@ class CmbrtModel():
         - Word embeddings TODO: make embedding class (use nn.Embeddings?, cf. BERT
           for special tokens; + pos embeddings)
         - Individual Transformer layer (cf. transformer encoder arch.), TODO: all 
-            ->Embeddings->Multi-head self attention->Add&Norm->Feed Forward->Add&Norm->Linear->Softmax->Output
+            ->Embeddings(->Multi-head self attention->Add&Norm->Feed Forward->Add&Norm->Linear->Softmax->Output)
         - Encoder TODO: make encoder class (this is where the transformer layers go, 
         forward: collect outputs from each layers) 
     """
