@@ -1,15 +1,16 @@
 import numpy
 import torch
-import torch.nn
+import torch.nn as nn
 from transformers import CamembertConfig
 
 from cmbrtEmbeddings import CmbrtEmbeddings
-
-cfg = CamembertConfig.from_pretrained("camembert-base") #
+from cmbrtEncoder import CmbrtEncoder
+from cmbrtOutput import CmbrtOutputHead
+cfg = CamembertConfig.from_pretrained("camembert-base")
 
 gelu = torch.nn.GELU()
 
-class CmbrtModel():
+class CmbrtModel(nn.Module):
     """
     Uses the original BERT_base archictecture, we use the available config file
     for parameter retrieval.
@@ -18,12 +19,24 @@ class CmbrtModel():
     all you need, 2017) and released in the tensor2tensor library" (cf. tensorflow).
 
     Model's general architecture includes:
-        - Word embeddings TODO: make embedding class (use nn.Embeddings?, cf. BERT
+        - Word embeddings: make embedding class (use nn.Embeddings?, cf. BERT
           for special tokens; + pos embeddings)
-        - Individual Transformer layer (cf. transformer encoder arch.), TODO: all 
+        - Individual Transformer layer (cf. transformer encoder arch.): 
             ->Embeddings(->Multi-head self attention->Add&Norm->Feed Forward->Add&Norm->Linear->Softmax->Output)
-        - Encoder TODO: make encoder class (this is where the transformer layers go, 
+        - Encoder: encoder class (this is where the transformer layers go, 
         forward: collect outputs from each layers) 
     """
     def __init__(self, config):
-        pass
+        super().__init__()
+        self.embeddings = CmbrtEmbeddings(config)
+        self.encoder = CmbrtEncoder(config)
+        self.output_head = CmbrtOutputHead(config)
+
+    def forward(self, input_ids, attention_mask=None, token_type_ids=None):
+        # 1. Embeddings
+        embeddings = self.embeddings(input_ids, token_type_ids)
+        # 2. Encoder
+        encoder_output = self.encoder(embeddings, attention_mask)
+        # 3. Tête de sortie
+        logits = self.output_head(encoder_output)
+        return logits
