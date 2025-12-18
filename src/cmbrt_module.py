@@ -21,10 +21,7 @@ class CmbrtLightningModule(pl.LightningModule):
         attention_mask = batch["attention_mask"]
         labels = batch["labels"]
 
-        # Gestion du masque additif ici si nécessaire
-        # extended_mask = (1.0 - attention_mask) * -10000.0
-        # extended_mask = extended_mask.unsqueeze(1).unsqueeze(2)
-
+        # On gère le masque dans le CmbrtModel
         logits = self(input_ids, attention_mask)
         
         # Reshape pour la Loss (Batch * Seq_len, Vocab_Size)
@@ -34,4 +31,4 @@ class CmbrtLightningModule(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        return torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
+        return torch.optim.AdamW(self.parameters(), lr=self.learning_rate, betas=(0.9, 0.98)) # cf. Optimisation (p5) -> β
