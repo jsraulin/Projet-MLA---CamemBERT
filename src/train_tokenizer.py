@@ -26,5 +26,6 @@ tokenizer.train(
 
 # Sauvegarde
 # Cela va créer 2 fichiers : vocab.json et merges.txt (ou tokenizer.json)
-tokenizer.save_model(".", "camembert-custom")
-print("Tokenizer sauvegardé dans ./camembert-custom-vocab.json et merges.txt")
+tokenizer.save("tokenizer.json")
+
+print("Tokenizer sauvegardé avec succès dans 'tokenizer.json' !")
