@@ -5,11 +5,24 @@ from transformers import CamembertConfig
 from camembert_proj import CmbrtModel
 
 class CmbrtLightningModule(pl.LightningModule):
-    def __init__(self, config: CamembertConfig, learning_rate: float = 1e-4):
+    def __init__(self, 
+                 vocab_size: int = 32005,
+                 hidden_size: int = 768,
+                 num_hidden_layers: int = 12,
+                 num_attention_heads: int = 12,
+                 max_position_embeddings: int = 512,
+                 learning_rate: float = 1e-4):
         super().__init__()
         self.save_hyperparameters() # Sauvegarde la config pour les logs
-        self.config = config
-        self.model = CmbrtModel(config)
+        self.config_obj = CamembertConfig(
+        vocab_size=vocab_size,
+        hidden_size=hidden_size,
+        num_hidden_layers=num_hidden_layers,
+        num_attention_heads=num_attention_heads,
+        max_position_embeddings=max_position_embeddings,
+        type_vocab_size=1
+        )   
+        self.model = CmbrtModel(self.config_obj)
         self.loss_fn = nn.CrossEntropyLoss()
         self.learning_rate = learning_rate
 

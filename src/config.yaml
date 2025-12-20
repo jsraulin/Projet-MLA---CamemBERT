@@ -18,3 +18,7 @@ model:
 
 data:
   batch_size: 8               # selon VRAM, baisser à 4 si OOM
+  train_files:                # Les train files qui manquait
+    - "./DATASET_pour_camemBERT/fr_part_1.txt"
+    - "./DATASET_pour_camemBERT/fr_part_2.txt"
+    - "./DATASET_pour_camemBERT/fr_part_3.txt"
