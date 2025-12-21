@@ -4,7 +4,7 @@ from cmbrt_data import CmbrtDataModule
 
 def cli_main():
     # LightningCLI connecte automatiquement le module, les données et les arguments
-    cli = LightningCLI(CmbrtLightningModule, CmbrtDataModule, save_config_kwargs=True)
+    cli = LightningCLI(CmbrtLightningModule, CmbrtDataModule, save_config_kwargs={"overwrite": True})
 
 if __name__ == "__main__":
     cli_main()

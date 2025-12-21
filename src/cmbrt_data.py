@@ -60,7 +60,7 @@ class CmbrtDataModule(pl.LightningDataModule):
         self.train_dataset = tokenized_datasets["train"].map(
             group_texts,
             batched=True,
-            num_proc=4
+            num_proc=32
         )
 
     def train_dataloader(self):
@@ -68,6 +68,7 @@ class CmbrtDataModule(pl.LightningDataModule):
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True,
+            num_workers=24,
             collate_fn=DataCollatorForLanguageModeling(
                 tokenizer=self.tokenizer, 
                 mlm=True, 

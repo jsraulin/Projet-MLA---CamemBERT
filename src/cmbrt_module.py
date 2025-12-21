@@ -38,8 +38,7 @@ class CmbrtLightningModule(pl.LightningModule):
         logits = self(input_ids, attention_mask)
         
         # Reshape pour la Loss (Batch * Seq_len, Vocab_Size)
-        loss = self.loss_fn(logits.view(-1, self.hparams.vocab_size), labels.view(-1))  
-              
+        loss = self.loss_fn(logits.view(-1, self.hparams.vocab_size), labels.view(-1))
         self.log("train_loss", loss, prog_bar=True)
         return loss
 
