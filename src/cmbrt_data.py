@@ -35,13 +35,13 @@ class CmbrtDataModule(pl.LightningDataModule):
         # Tokenisation
         def tokenize_function(examples):
             # SentencePiece gère le texte brut directement
-            return self.tokenizer(examples["text"], return_special_tokens_mask=True)
+            return self.tokenizer(examples["text"], truncation=True, max_length=self.max_length, return_special_tokens_mask=True)
 
         tokenized_datasets = dataset.map(
             tokenize_function,
             batched=True,
             remove_columns=["text"],
-            num_proc=4
+            num_proc=32
         )
 
         # Grouping pour remplir les séquences de 512
