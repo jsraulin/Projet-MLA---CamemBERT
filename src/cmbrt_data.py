@@ -7,21 +7,24 @@ from itertools import chain
 class CmbrtDataModule(pl.LightningDataModule):
     def __init__(self, 
                  train_files: list, 
-                 tokenizer_dir: str = ".", 
+                 tokenizer_path: str = "./tokenizer.json",
                  batch_size: int = 8, 
-                 max_length: int = 512):
+                 max_length: int = 512,
+                 num_workers: int = 32):
         super().__init__()
         self.train_files = train_files
-        self.tokenizer_dir = tokenizer_dir
+        self.tokenizer_path = tokenizer_path
         self.batch_size = batch_size
         self.max_length = max_length
+        self.num_workers = num_workers
 
     def setup(self, stage=None):
         # Charge le Tokenizer entraîné
-        self.tokenizer = PreTrainedTokenizerFast.from_pretrained(
-            self.tokenizer_dir,
+        self.tokenizer = PreTrainedTokenizerFast(
+            tokenizer_file=self.tokenizer_path,
             model_max_length=self.max_length
         )
+        
         # Il faut définir manuellement les tokens spéciaux car save_model ne garde que le vocabulaire
         self.tokenizer.bos_token = "<s>"
         self.tokenizer.eos_token = "</s>"
@@ -41,11 +44,10 @@ class CmbrtDataModule(pl.LightningDataModule):
             tokenize_function,
             batched=True,
             remove_columns=["text"],
-            num_proc=32
+            num_proc=self.num_workers
         )
 
         # Grouping pour remplir les séquences de 512
-        # L'article dit : "We enforce each sequence to only contain complete paragraphs"
         def group_texts(examples):
             concatenated_examples = {k: list(chain(*examples[k])) for k in examples.keys()}
             total_length = len(concatenated_examples[list(examples.keys())[0]])
@@ -60,7 +62,7 @@ class CmbrtDataModule(pl.LightningDataModule):
         self.train_dataset = tokenized_datasets["train"].map(
             group_texts,
             batched=True,
-            num_proc=32
+            num_proc=self.num_workers
         )
 
     def train_dataloader(self):
@@ -68,7 +70,7 @@ class CmbrtDataModule(pl.LightningDataModule):
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True,
-            num_workers=24,
+            num_workers=self.num_workers, # <--- Use safe variable (4 or 8) instead of 24
             collate_fn=DataCollatorForLanguageModeling(
                 tokenizer=self.tokenizer, 
                 mlm=True, 

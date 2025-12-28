@@ -1,7 +1,7 @@
 from tokenizers import SentencePieceBPETokenizer
 import glob
 
-files = glob.glob("./DATASET_pour_camemBERT/*.txt")
+files = glob.glob("/home/camembert/dataset_g5/*.txt")
 vocab_size = 32000 
 
 """

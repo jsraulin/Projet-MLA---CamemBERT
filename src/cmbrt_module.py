@@ -1,16 +1,17 @@
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
-from transformers import CamembertConfig
+from transformers import CamembertConfig, get_linear_schedule_with_warmup
 from camembert_proj import CmbrtModel
 
 class CmbrtLightningModule(pl.LightningModule):
     def __init__(self, 
-                 vocab_size: int = 32005,
+                 vocab_size: int = 32000,
                  hidden_size: int = 768,
                  num_hidden_layers: int = 12,
                  num_attention_heads: int = 12,
-                 max_position_embeddings: int = 512,
+                 max_position_embeddings: int = 514,
+                 intermediate_size: int = 3072,
                  learning_rate: float = 1e-4):
         super().__init__()
         self.save_hyperparameters() # Sauvegarde la config pour les logs
@@ -20,6 +21,7 @@ class CmbrtLightningModule(pl.LightningModule):
         num_hidden_layers=num_hidden_layers,
         num_attention_heads=num_attention_heads,
         max_position_embeddings=max_position_embeddings,
+        intermediate_size = intermediate_size,
         type_vocab_size=1
         )   
         self.model = CmbrtModel(self.config_obj)
@@ -39,8 +41,32 @@ class CmbrtLightningModule(pl.LightningModule):
         
         # Reshape pour la Loss (Batch * Seq_len, Vocab_Size)
         loss = self.loss_fn(logits.view(-1, self.hparams.vocab_size), labels.view(-1))
+        
         self.log("train_loss", loss, prog_bar=True)
         return loss
 
     def configure_optimizers(self):
-        return torch.optim.AdamW(self.parameters(), lr=self.learning_rate, betas=(0.9, 0.98)) # cf. Optimisation (p5) -> β
+        optimizer = torch.optim.AdamW(
+            self.parameters(), 
+            lr=self.learning_rate, 
+            betas=(0.9, 0.98),
+            eps=1e-6
+        )
+        total_steps = self.trainer.estimated_stepping_batches
+        
+        warmup_steps = 10000 
+        
+        scheduler = get_linear_schedule_with_warmup(
+            optimizer,
+            num_warmup_steps=warmup_steps,
+            num_training_steps=total_steps
+        )
+        
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "interval": "step",
+                "frequency": 1
+            }
+        }

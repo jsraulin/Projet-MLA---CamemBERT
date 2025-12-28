@@ -6,12 +6,13 @@ trainer:
   accelerator: "gpu"
   devices: [0]
   precision: "16-mixed"
-  accumulate_grad_batches: 16 
+  accumulate_grad_batches: 11
   log_every_n_steps: 10
+  gradient_clip_val: 1.0
   default_root_dir: "./../checkpoints/"
   
   callbacks:
-    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+    - class_path: pytorch_lightning.callbacks.ModelCheckpoint
       init_args:
         save_top_k: 1
         monitor: "train_loss"
@@ -21,14 +22,15 @@ trainer:
 
 model:
   learning_rate: 0.0001
-  vocab_size: 32005
+  vocab_size: 32000
   hidden_size: 768
   num_hidden_layers: 12
   num_attention_heads: 12
 
 data:
-  batch_size: 16               
-  tokenizer_dir: "/home/camembert/js"
+  batch_size: 24         
+  tokenizer_path: "/home/camembert/js/tokenizer.json"
+  num_workers: 32
   train_files:
     - "/home/camembert/dataset_g5/fr_part_1.txt"
     - "/home/camembert/dataset_g5/fr_part_2.txt"
