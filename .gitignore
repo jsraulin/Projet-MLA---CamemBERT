@@ -1,1 +1,6 @@
-Projet-MLA---CamemBERT/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+checkpoints/
+lightning_logs/
+data_tokenized/
