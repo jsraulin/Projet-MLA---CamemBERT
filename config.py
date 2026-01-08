@@ -1,11 +1,11 @@
 # config.py
-"Ce fichier charge directement la configuration officielle de CamemBERT depuis Hugging Face"
+# Charge la configuration officielle de CamemBERT depuis Hugging Face
 
 from transformers import CamembertConfig
 
-config = CamembertConfig.from_pretrained("camembert-base")
-
-
+def get_config():
+    """La configuration officielle de CamemBERT"""
+    return CamembertConfig.from_pretrained("camembert-base")
 
 if __name__ == "__main__":
-    print(config)
+    print(get_config())
