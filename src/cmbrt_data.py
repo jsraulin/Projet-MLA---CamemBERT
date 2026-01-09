@@ -1,13 +1,14 @@
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
-from transformers import PreTrainedTokenizerFast, DataCollatorForLanguageModeling
+from transformers import DataCollatorForLanguageModeling, AutoTokenizer # Ajout de AutoTokenizer
+# from transformers import PreTrainedTokenizerFast # Commenté
 from datasets import load_dataset
 from itertools import chain
 
 class CmbrtDataModule(pl.LightningDataModule):
     def __init__(self, 
                  train_files: list, 
-                 tokenizer_path: str = "./tokenizer.json",
+                 tokenizer_path: str = "camembert-base", # Modifié par défaut
                  batch_size: int = 8, 
                  max_length: int = 512,
                  num_workers: int = 32):
@@ -19,18 +20,20 @@ class CmbrtDataModule(pl.LightningDataModule):
         self.num_workers = num_workers
 
     def setup(self, stage=None):
-        # Charge le Tokenizer entraîné
-        self.tokenizer = PreTrainedTokenizerFast(
-            tokenizer_file=self.tokenizer_path,
-            model_max_length=self.max_length
-        )
-        
-        # Il faut définir manuellement les tokens spéciaux car save_model ne garde que le vocabulaire
-        self.tokenizer.bos_token = "<s>"
-        self.tokenizer.eos_token = "</s>"
-        self.tokenizer.unk_token = "<unk>"
-        self.tokenizer.pad_token = "<pad>"
-        self.tokenizer.mask_token = "<mask>"
+        # --- ANCIEN TOKENIZER (COMMENTÉ) ---
+        # self.tokenizer = PreTrainedTokenizerFast(
+        #     tokenizer_file=self.tokenizer_path,
+        #     model_max_length=self.max_length
+        # )
+        # self.tokenizer.bos_token = "<s>"
+        # self.tokenizer.eos_token = "</s>"
+        # self.tokenizer.unk_token = "<unk>"
+        # self.tokenizer.pad_token = "<pad>"
+        # self.tokenizer.mask_token = "<mask>"
+
+        # --- NOUVEAU TOKENIZER (HUGGING FACE) ---
+        # On utilise AutoTokenizer pour charger camembert-base proprement
+        self.tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_path)
 
         # Chargement des données
         dataset = load_dataset("text", data_files={"train": self.train_files})
@@ -38,7 +41,12 @@ class CmbrtDataModule(pl.LightningDataModule):
         # Tokenisation
         def tokenize_function(examples):
             # SentencePiece gère le texte brut directement
-            return self.tokenizer(examples["text"], truncation=True, max_length=self.max_length, return_special_tokens_mask=True)
+            return self.tokenizer(
+                examples["text"], 
+                truncation=True, 
+                max_length=self.max_length, 
+                return_special_tokens_mask=True
+            )
 
         tokenized_datasets = dataset.map(
             tokenize_function,
@@ -70,7 +78,7 @@ class CmbrtDataModule(pl.LightningDataModule):
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True,
-            num_workers=self.num_workers, # <--- Use safe variable (4 or 8) instead of 24
+            num_workers=self.num_workers,
             collate_fn=DataCollatorForLanguageModeling(
                 tokenizer=self.tokenizer, 
                 mlm=True, 

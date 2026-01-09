@@ -12,7 +12,7 @@ class CmbrtLightningModule(pl.LightningModule):
                  num_attention_heads: int = 12,
                  max_position_embeddings: int = 514,
                  intermediate_size: int = 3072,
-                 learning_rate: float = 1e-4):
+                 learning_rate: float = 0.00015):
         super().__init__()
         self.save_hyperparameters() # Sauvegarde la config pour les logs
         self.config_obj = CamembertConfig(
@@ -52,21 +52,18 @@ class CmbrtLightningModule(pl.LightningModule):
             betas=(0.9, 0.98),
             eps=1e-6
         )
+        
+        # Warmup Steps: L'article dit 24k pour 500k steps totaux (~5%)
         total_steps = self.trainer.estimated_stepping_batches
-        
-        warmup_steps = 10000 
-        
+        warmup_steps = int(0.05 * total_steps) 
+    
         scheduler = get_linear_schedule_with_warmup(
-            optimizer,
-            num_warmup_steps=warmup_steps,
+            optimizer, 
+            num_warmup_steps=warmup_steps, 
             num_training_steps=total_steps
         )
         
         return {
             "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": scheduler,
-                "interval": "step",
-                "frequency": 1
-            }
+            "lr_scheduler": {"scheduler": scheduler, "interval": "step"}
         }
