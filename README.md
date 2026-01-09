@@ -15,7 +15,7 @@ L'organisation du répertoire reflète le travail collaboratif effectué sur les
 
 ---
 
-## 🛠️ Répartition du Travail
+## Répartition du Travail
 
 ### Axe 1 : Réimplémentation & Pré-entraînement (Pre-training Track)
 L'objectif était de reconstruire l'architecture **CamemBERT-base** (12 couches, 768 dimensions) et d'assurer sa convergence.
